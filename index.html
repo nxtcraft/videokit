@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- coi-serviceworker: enables SharedArrayBuffer on GitHub Pages (page reloads once on first visit) -->
+<script src="https://cdn.jsdelivr.net/npm/coi-serviceworker@0.1.7/coi-serviceworker.min.js"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-XXXXXXXXXX");</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VideoKit — Free Online Video Editor | Trim, Compress, Convert, Mute, Extract Audio</title>
+<meta name="description" content="Free online video tools: trim video, compress video size, convert format, mute video, extract audio as MP3. All run in your browser — no upload, no signup, 100% private.">
+<meta name="keywords" content="trim video online free, compress video online free, cut video online, video to mp3 online free, mute video online, convert video format free, video editor online no upload, video cutter free">
+<link rel="canonical" href="https://nxtcraft.github.io/videokit/">
+<meta property="og:title" content="VideoKit — Free Video Trim, Compress, Convert, Extract Audio">
+<meta property="og:description" content="5 video tools in one place. All free, all in your browser. Your videos never leave your device.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"VideoKit","url":"https://nxtcraft.github.io/videokit/","description":"Free browser-based video tools."}</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Inter',BlinkMacSystemFont,sans-serif;background:#f0fdfa;color:#134e4a;min-height:100vh}
+nav{background:#fff;border-bottom:1px solid #99f6e4;padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+.logo{font-size:19px;font-weight:800}.logo span{color:#0d9488}
+.nav-tag{font-size:11px;background:#ccfbf1;color:#0d9488;padding:3px 10px;border-radius:20px;font-weight:600}
+.tabs-bar{background:#fff;border-bottom:2px solid #99f6e4;padding:0 16px;display:flex;overflow-x:auto;scrollbar-width:none;position:sticky;top:54px;z-index:19}
+.tabs-bar::-webkit-scrollbar{display:none}
+.tab{padding:13px 15px;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:6px}
+.tab:hover{color:#0d9488}
+.tab.active{color:#0d9488;border-bottom-color:#0d9488}
+.tool-panel{display:none;max-width:860px;margin:0 auto;padding:28px 16px 60px}
+.tool-panel.active{display:block}
+h2{font-size:22px;font-weight:800;margin-bottom:5px}
+.subtitle{font-size:13px;color:#6b7280;margin-bottom:22px}
+.upload-zone{border:2.5px dashed #5eead4;border-radius:16px;padding:44px 20px;text-align:center;cursor:pointer;transition:all .2s;background:#fff;margin-bottom:20px}
+.upload-zone:hover,.upload-zone.drag{border-color:#0d9488;background:#f0fdfa}
+.up-icon{font-size:40px;margin-bottom:10px}
+.up-title{font-size:15px;font-weight:700;margin-bottom:3px}
+.up-sub{font-size:12px;color:#9ca3af}
+.upload-btn{display:inline-block;margin-top:12px;background:#0d9488;color:#fff;padding:10px 22px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:none}
+.upload-btn:hover{background:#0f766e}
+.card{background:#fff;border-radius:14px;border:1.5px solid #99f6e4;padding:18px 20px;margin-bottom:14px}
+.card-title{font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.btn-primary{background:#0d9488;color:#fff;padding:11px 24px;border-radius:10px;font-size:13px;font-weight:700;border:none;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px}
+.btn-primary:hover{background:#0f766e}
+.btn-sec{background:#f0fdfa;color:#0d9488;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:600;border:none;cursor:pointer}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.tip{background:#fef3c7;border-left:3px solid #f59e0b;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e;margin-top:14px;line-height:1.6}
+.error{background:#fef2f2;border-left:3px solid #ef4444;border-radius:8px;padding:10px 14px;font-size:12px;color:#991b1b;margin-bottom:12px;display:none}
+.error.show{display:block}
+/* status */
+.status-bar{background:#fff;border:1.5px solid #99f6e4;border-radius:10px;padding:14px 16px;margin-bottom:14px;display:none}
+.status-bar.show{display:flex;align-items:flex-start;gap:12px}
+.spinner{width:20px;height:20px;border:2.5px solid #99f6e4;border-top-color:#0d9488;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;margin-top:2px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.status-text{font-size:13px;font-weight:600;color:#0f766e;margin-bottom:4px}
+.status-sub{font-size:11px;color:#9ca3af}
+.prog-bar{height:4px;background:#ccfbf1;border-radius:4px;margin-top:6px;overflow:hidden;width:100%}
+.prog-fill{height:100%;background:linear-gradient(90deg,#0d9488,#14b8a6);border-radius:4px;transition:width .4s;width:0%}
+/* video player */
+.video-player{width:100%;border-radius:12px;overflow:hidden;background:#000;margin-bottom:14px;display:block;max-height:360px}
+/* trim controls */
+.time-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.time-row label{font-size:13px;font-weight:600;min-width:68px}
+.time-input{width:110px;padding:8px 10px;border:1.5px solid #99f6e4;border-radius:8px;font-size:14px;font-weight:700;text-align:center;color:#134e4a;font-family:monospace}
+.time-input:focus{outline:none;border-color:#0d9488}
+.set-btn{background:#f0fdfa;color:#0d9488;border:1.5px solid #5eead4;border-radius:7px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.set-btn:hover{background:#ccfbf1}
+/* quality options */
+.quality-opts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.q-opt{padding:10px 18px;border-radius:10px;border:1.5px solid #99f6e4;background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:#6b7280;transition:all .15s;text-align:center}
+.q-opt:hover{border-color:#0d9488;color:#0d9488}
+.q-opt.active{border-color:#0d9488;background:#f0fdfa;color:#0d9488}
+.q-sub{font-size:10px;color:#9ca3af;font-weight:400;margin-top:2px}
+/* format btns */
+.fmt-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.fmt-btn{padding:10px 20px;border-radius:10px;border:1.5px solid #99f6e4;background:#fff;font-size:13px;font-weight:700;cursor:pointer;color:#6b7280;transition:all .15s}
+.fmt-btn:hover{border-color:#0d9488;color:#0d9488}
+.fmt-btn.active{border-color:#0d9488;background:#f0fdfa;color:#0d9488}
+/* file info */
+.file-info-bar{background:#f0fdfa;border:1.5px solid #99f6e4;border-radius:10px;padding:10px 14px;font-size:12px;color:#134e4a;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.file-info-bar span{color:#9ca3af}
+/* result */
+.result-box{background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.result-box .r-title{font-size:13px;font-weight:700;color:#166534;margin-bottom:4px}
+.result-box .r-sub{font-size:12px;color:#4ade80;font-weight:600}
+/* stats */
+.stats-row{display:grid;grid-template-columns:1fr 28px 1fr;gap:10px;align-items:center;margin-bottom:14px}
+.stat-box{background:#f0fdfa;border-radius:10px;padding:12px;text-align:center}
+.stat-label{font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;margin-bottom:3px}
+.stat-val{font-size:18px;font-weight:800}.stat-val.g{color:#16a34a}
+footer{text-align:center;padding:22px;font-size:12px;color:#0d9488;border-top:1px solid #99f6e4}
+footer a{color:#0d9488;text-decoration:none}
+/* ffmpeg load overlay */
+.ffload-overlay{position:fixed;inset:0;background:rgba(240,253,250,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:16px;display:none}
+.ffload-overlay.show{display:flex}
+.ffload-spinner{width:48px;height:48px;border:4px solid #99f6e4;border-top-color:#0d9488;border-radius:50%;animation:spin .8s linear infinite}
+.ffload-title{font-size:17px;font-weight:800;color:#134e4a}
+.ffload-sub{font-size:13px;color:#6b7280;text-align:center;max-width:300px;line-height:1.6}
+.ffload-prog{width:240px;height:5px;background:#ccfbf1;border-radius:5px;overflow:hidden}
+.ffload-prog-fill{height:100%;background:#0d9488;border-radius:5px;transition:width .4s;width:0%}
+</style>
+</head>
+<body>
+
+<div class="ffload-overlay" id="ff-overlay">
+  <div class="ffload-spinner"></div>
+  <div class="ffload-title">Loading VideoKit Engine</div>
+  <div class="ffload-sub">Downloading FFmpeg (~30 MB) — happens once, then cached in your browser.</div>
+  <div class="ffload-prog"><div class="ffload-prog-fill" id="ff-fill"></div></div>
+</div>
+
+<nav>
+  <div class="logo">Video<span>Kit</span></div>
+  <div class="nav-tag">Free · No Upload · No Signup</div>
+</nav>
+
+<div class="tabs-bar">
+  <div class="tab active" onclick="switchTab('trim',this)">✂️ Trim / Cut</div>
+  <div class="tab" onclick="switchTab('compress',this)">🗜️ Compress</div>
+  <div class="tab" onclick="switchTab('convert',this)">🔄 Convert</div>
+  <div class="tab" onclick="switchTab('mute',this)">🔇 Mute</div>
+  <div class="tab" onclick="switchTab('audio',this)">🎵 Extract Audio</div>
+</div>
+
+<!-- TRIM -->
+<div id="panel-trim" class="tool-panel active">
+  <h2>Trim / Cut Video</h2>
+  <p class="subtitle">Cut your video to keep only the part you want. No re-encoding — super fast.</p>
+  <div class="upload-zone" id="tr-drop">
+    <div class="up-icon">✂️</div>
+    <div class="up-title">Drop your video here</div>
+    <div class="up-sub">MP4, MOV, WebM, AVI, MKV — any size</div>
+    <button class="upload-btn" onclick="document.getElementById('tr-file').click()">Choose Video</button>
+  </div>
+  <input type="file" id="tr-file" accept="video/*" style="display:none">
+  <div class="error" id="tr-error"></div>
+  <div id="tr-editor" style="display:none">
+    <video class="video-player" id="tr-video" controls></video>
+    <div class="card">
+      <div class="card-title">Set Start &amp; End Time</div>
+      <div class="time-row">
+        <label>Start time</label>
+        <input class="time-input" id="tr-start" value="00:00:00" placeholder="00:00:00">
+        <button class="set-btn" onclick="trSetTime('start')">⏯ Set to current</button>
+      </div>
+      <div class="time-row">
+        <label>End time</label>
+        <input class="time-input" id="tr-end" value="00:00:00" placeholder="00:00:00">
+        <button class="set-btn" onclick="trSetTime('end')">⏯ Set to current</button>
+      </div>
+      <div style="font-size:11px;color:#9ca3af;margin-top:4px">Tip: Play the video, pause at the point you want, then click "Set to current"</div>
+    </div>
+    <div class="status-bar" id="tr-status">
+      <div class="spinner"></div>
+      <div style="flex:1">
+        <div class="status-text" id="tr-status-text">Processing…</div>
+        <div class="status-sub">This uses stream copy — no re-encoding, usually done in seconds.</div>
+        <div class="prog-bar"><div class="prog-fill" id="tr-prog"></div></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" onclick="trRun()">✂️ Trim &amp; Download</button>
+      <button class="btn-sec" onclick="trReset()">New video</button>
+    </div>
+    <div class="tip">⚡ Trim uses stream copy (no re-encoding) — very fast. Output format stays the same as input.</div>
+  </div>
+</div>
+
+<!-- COMPRESS -->
+<div id="panel-compress" class="tool-panel">
+  <h2>Compress Video</h2>
+  <p class="subtitle">Reduce video file size. Great for sharing on WhatsApp, email, or social media.</p>
+  <div class="upload-zone" id="cmp-drop">
+    <div class="up-icon">🗜️</div>
+    <div class="up-title">Drop your video here</div>
+    <div class="up-sub">MP4, MOV, WebM, AVI — any size</div>
+    <button class="upload-btn" onclick="document.getElementById('cmp-file').click()">Choose Video</button>
+  </div>
+  <input type="file" id="cmp-file" accept="video/*" style="display:none">
+  <div class="error" id="cmp-error"></div>
+  <div id="cmp-controls" style="display:none">
+    <div class="file-info-bar" id="cmp-file-info">
+      <span>File:</span><span id="cmp-fname">—</span><span>·</span><span id="cmp-fsize">—</span>
+    </div>
+    <div class="card">
+      <div class="card-title">Output Quality</div>
+      <div class="quality-opts">
+        <div class="q-opt" data-crf="18" data-scale="1080" onclick="cmpSelect(this)">
+          High Quality<div class="q-sub">1080p · CRF 18</div>
+        </div>
+        <div class="q-opt active" data-crf="28" data-scale="720" onclick="cmpSelect(this)">
+          Balanced ✓<div class="q-sub">720p · CRF 28</div>
+        </div>
+        <div class="q-opt" data-crf="33" data-scale="480" onclick="cmpSelect(this)">
+          Small Size<div class="q-sub">480p · CRF 33</div>
+        </div>
+        <div class="q-opt" data-crf="38" data-scale="360" onclick="cmpSelect(this)">
+          Very Small<div class="q-sub">360p · CRF 38</div>
+        </div>
+      </div>
+    </div>
+    <div class="status-bar" id="cmp-status">
+      <div class="spinner"></div>
+      <div style="flex:1">
+        <div class="status-text" id="cmp-status-text">Compressing…</div>
+        <div class="status-sub">Re-encoding video — may take a minute for longer videos.</div>
+        <div class="prog-bar"><div class="prog-fill" id="cmp-prog"></div></div>
+      </div>
+    </div>
+    <div id="cmp-result" style="display:none">
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-label">Original</div><div class="stat-val" id="cmp-orig-sz">—</div></div>
+        <div style="text-align:center;font-size:18px;color:#0d9488">→</div>
+        <div class="stat-box"><div class="stat-label">Compressed</div><div class="stat-val g" id="cmp-new-sz">—</div></div>
+      </div>
+      <div style="text-align:center;font-size:12px;color:#16a34a;font-weight:700;margin-bottom:14px" id="cmp-save-lbl"></div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" onclick="cmpRun()">🗜️ Compress &amp; Download</button>
+      <button class="btn-sec" onclick="cmpReset()">New video</button>
+    </div>
+    <div class="tip">⏱ Compression re-encodes the video. A 5-minute video may take 1–3 minutes depending on your device.</div>
+  </div>
+</div>
+
+<!-- CONVERT -->
+<div id="panel-convert" class="tool-panel">
+  <h2>Convert Video Format</h2>
+  <p class="subtitle">Convert between MP4, WebM, and GIF. GIF is capped at 15 seconds for file size.</p>
+  <div class="upload-zone" id="cvt-drop">
+    <div class="up-icon">🔄</div>
+    <div class="up-title">Drop your video here</div>
+    <div class="up-sub">MP4, MOV, WebM, AVI, MKV</div>
+    <button class="upload-btn" onclick="document.getElementById('cvt-file').click()">Choose Video</button>
+  </div>
+  <input type="file" id="cvt-file" accept="video/*" style="display:none">
+  <div class="error" id="cvt-error"></div>
+  <div id="cvt-controls" style="display:none">
+    <div class="file-info-bar" id="cvt-file-info">
+      <span>File:</span><span id="cvt-fname">—</span>
+    </div>
+    <div class="card">
+      <div class="card-title">Convert To</div>
+      <div class="fmt-btns">
+        <button class="fmt-btn active" data-fmt="mp4" onclick="cvtSelect(this)">MP4<div style="font-size:10px;color:#9ca3af;font-weight:400">H.264 · Most compatible</div></button>
+        <button class="fmt-btn" data-fmt="webm" onclick="cvtSelect(this)">WebM<div style="font-size:10px;color:#9ca3af;font-weight:400">VP8 · Web-optimised</div></button>
+        <button class="fmt-btn" data-fmt="gif" onclick="cvtSelect(this)">GIF<div style="font-size:10px;color:#9ca3af;font-weight:400">Animated · Max 15s</div></button>
+      </div>
+      <div id="cvt-gif-opts" style="display:none;margin-top:4px">
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px">GIF Settings</div>
+        <div class="time-row">
+          <label>Max duration</label>
+          <input class="time-input" id="cvt-gif-dur" value="10" style="width:70px"> sec
+        </div>
+        <div class="time-row">
+          <label>Frame rate</label>
+          <input class="time-input" id="cvt-gif-fps" value="10" style="width:70px"> fps
+        </div>
+        <div class="time-row">
+          <label>Width</label>
+          <input class="time-input" id="cvt-gif-w" value="480" style="width:70px"> px
+        </div>
+      </div>
+    </div>
+    <div class="status-bar" id="cvt-status">
+      <div class="spinner"></div>
+      <div style="flex:1">
+        <div class="status-text" id="cvt-status-text">Converting…</div>
+        <div class="prog-bar"><div class="prog-fill" id="cvt-prog"></div></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" onclick="cvtRun()">🔄 Convert &amp; Download</button>
+      <button class="btn-sec" onclick="cvtReset()">New video</button>
+    </div>
+  </div>
+</div>
+
+<!-- MUTE -->
+<div id="panel-mute" class="tool-panel">
+  <h2>Mute Video</h2>
+  <p class="subtitle">Remove audio track from a video. Fast — video is not re-encoded.</p>
+  <div class="upload-zone" id="mt-drop">
+    <div class="up-icon">🔇</div>
+    <div class="up-title">Drop your video here</div>
+    <div class="up-sub">MP4, MOV, WebM, AVI</div>
+    <button class="upload-btn" onclick="document.getElementById('mt-file').click()">Choose Video</button>
+  </div>
+  <input type="file" id="mt-file" accept="video/*" style="display:none">
+  <div class="error" id="mt-error"></div>
+  <div id="mt-controls" style="display:none">
+    <div class="file-info-bar">
+      <span>File:</span><span id="mt-fname">—</span><span>·</span><span id="mt-fsize">—</span>
+    </div>
+    <div class="card" style="text-align:center;padding:28px">
+      <div style="font-size:48px;margin-bottom:12px">🔇</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px">Ready to remove audio</div>
+      <div style="font-size:13px;color:#6b7280">The video stream will be copied without the audio track. Very fast.</div>
+    </div>
+    <div class="status-bar" id="mt-status">
+      <div class="spinner"></div>
+      <div style="flex:1">
+        <div class="status-text" id="mt-status-text">Removing audio…</div>
+        <div class="prog-bar"><div class="prog-fill" id="mt-prog"></div></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" onclick="mtRun()">🔇 Mute &amp; Download</button>
+      <button class="btn-sec" onclick="mtReset()">New video</button>
+    </div>
+    <div class="tip">⚡ Audio is removed without re-encoding the video — usually done in seconds.</div>
+  </div>
+</div>
+
+<!-- EXTRACT AUDIO -->
+<div id="panel-audio" class="tool-panel">
+  <h2>Extract Audio from Video</h2>
+  <p class="subtitle">Pull the audio track out of any video as MP3 or WAV.</p>
+  <div class="upload-zone" id="au-drop">
+    <div class="up-icon">🎵</div>
+    <div class="up-title">Drop your video here</div>
+    <div class="up-sub">MP4, MOV, WebM, AVI, MKV</div>
+    <button class="upload-btn" onclick="document.getElementById('au-file').click()">Choose Video</button>
+  </div>
+  <input type="file" id="au-file" accept="video/*" style="display:none">
+  <div class="error" id="au-error"></div>
+  <div id="au-controls" style="display:none">
+    <div class="file-info-bar">
+      <span>File:</span><span id="au-fname">—</span>
+    </div>
+    <div class="card">
+      <div class="card-title">Output Format</div>
+      <div class="fmt-btns">
+        <button class="fmt-btn active" data-fmt="mp3" onclick="auSelect(this)">MP3<div style="font-size:10px;color:#9ca3af;font-weight:400">192 kbps · Smaller</div></button>
+        <button class="fmt-btn" data-fmt="wav" onclick="auSelect(this)">WAV<div style="font-size:10px;color:#9ca3af;font-weight:400">Lossless · Larger</div></button>
+      </div>
+    </div>
+    <div class="status-bar" id="au-status">
+      <div class="spinner"></div>
+      <div style="flex:1">
+        <div class="status-text" id="au-status-text">Extracting audio…</div>
+        <div class="prog-bar"><div class="prog-fill" id="au-prog"></div></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" onclick="auRun()">🎵 Extract &amp; Download</button>
+      <button class="btn-sec" onclick="auReset()">New video</button>
+    </div>
+  </div>
+</div>
+
+<footer><a href="https://nxtcraft.github.io/">NxtCraft Free Tools</a> · <a href="https://nxtcraft.github.io/imagecraft/">ImageCraft</a> · Your videos never leave your device</footer>
+
+<!-- FFmpeg.wasm -->
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+<script>
+// ── Tab switching ──────────────────────────────────────
+function switchTab(id,el){
+  document.querySelectorAll('.tool-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  el.classList.add('active');
+  history.replaceState(null,'','#'+id);
+}
+(function(){
+  const h=location.hash.slice(1);
+  const map={'trim':0,'compress':1,'convert':2,'mute':3,'audio':4};
+  if(h in map){const tabs=document.querySelectorAll('.tab');switchTab(h,tabs[map[h]]);}
+})();
+
+// ── Helpers ────────────────────────────────────────────
+function fmtSz(b){if(!b)return'—';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(2)+' MB';}
+function showErr(id,msg){const e=document.getElementById(id);e.textContent=msg;e.classList.add('show');}
+function hideErr(id){document.getElementById(id).classList.remove('show');}
+function setStat(barId,textId,progId,text,pct){
+  document.getElementById(barId).classList.add('show');
+  document.getElementById(textId).textContent=text;
+  if(progId)document.getElementById(progId).style.width=pct+'%';
+}
+function hideStat(id){document.getElementById(id).classList.remove('show');}
+function makeDrop(zoneId,fileId,cb){
+  const z=document.getElementById(zoneId);
+  z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('drag');});
+  z.addEventListener('dragleave',()=>z.classList.remove('drag'));
+  z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('drag');cb(e.dataTransfer.files[0]);});
+  document.getElementById(fileId).addEventListener('change',function(){cb(this.files[0]);});
+}
+function getExt(file){return(file.name.split('.').pop()||'mp4').toLowerCase();}
+function secToHMS(s){
+  s=Math.max(0,s);
+  const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=Math.floor(s%60);
+  return [h,m,sec].map(v=>String(v).padStart(2,'0')).join(':');
+}
+function hmsToSec(str){
+  const parts=str.split(':').map(Number);
+  if(parts.length===3)return parts[0]*3600+parts[1]*60+parts[2];
+  if(parts.length===2)return parts[0]*60+parts[1];
+  return Number(str)||0;
+}
+function triggerDownload(data,filename,mime){
+  const blob=new Blob([data.buffer],{type:mime});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
+}
+
+// ── FFmpeg init ────────────────────────────────────────
+const { createFFmpeg, fetchFile } = FFmpeg;
+let ffmpeg = null;
+let ffmpegReady = false;
+
+async function ensureFFmpeg() {
+  if (ffmpegReady) return;
+  document.getElementById('ff-overlay').classList.add('show');
+  document.getElementById('ff-fill').style.width = '5%';
+  if (!ffmpeg) {
+    ffmpeg = createFFmpeg({
+      corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+      log: false,
+      progress: ({ ratio }) => {
+        if (ratio > 0) document.getElementById('ff-fill').style.width = Math.round(ratio*100)+'%';
+      }
+    });
+  }
+  try {
+    document.getElementById('ff-fill').style.width = '15%';
+    await ffmpeg.load();
+    ffmpegReady = true;
+    document.getElementById('ff-fill').style.width = '100%';
+    setTimeout(() => document.getElementById('ff-overlay').classList.remove('show'), 400);
+  } catch(e) {
+    document.getElementById('ff-overlay').classList.remove('show');
+    throw new Error('Failed to load FFmpeg engine: '+e.message);
+  }
+}
+
+function setProgress(progId, ratio) {
+  if (progId) document.getElementById(progId).style.width = Math.round(ratio*100)+'%';
+}
+
+async function runFFmpeg(args, progId) {
+  if (progId) {
+    ffmpeg.setProgress(({ratio}) => { if(ratio>0) setProgress(progId, ratio); });
+  }
+  await ffmpeg.run(...args);
+}
+
+// ── TRIM ──────────────────────────────────────────────
+let trFile;
+makeDrop('tr-drop','tr-file',trLoad);
+function trLoad(file) {
+  if(!file||!file.type.startsWith('video/'))return showErr('tr-error','Please select a video file.');
+  hideErr('tr-error');
+  trFile=file;
+  const video=document.getElementById('tr-video');
+  video.src=URL.createObjectURL(file);
+  video.onloadedmetadata=()=>{
+    document.getElementById('tr-end').value=secToHMS(video.duration);
+  };
+  document.getElementById('tr-drop').style.display='none';
+  document.getElementById('tr-editor').style.display='';
+}
+function trSetTime(which) {
+  const video=document.getElementById('tr-video');
+  document.getElementById('tr-'+which).value=secToHMS(video.currentTime);
+}
+async function trRun() {
+  hideErr('tr-error');
+  const start=document.getElementById('tr-start').value;
+  const end=document.getElementById('tr-end').value;
+  const s=hmsToSec(start),e=hmsToSec(end);
+  if(e<=s){showErr('tr-error','End time must be after start time.');return;}
+  try {
+    await ensureFFmpeg();
+    setStat('tr-status','tr-status-text','tr-prog','Trimming video…',30);
+    const ext=getExt(trFile);
+    const inName='input.'+ext, outName='output.'+ext;
+    ffmpeg.FS('writeFile',inName,await fetchFile(trFile));
+    setStat('tr-status','tr-status-text','tr-prog','Cutting…',60);
+    // Use stream copy for speed — no re-encoding
+    await ffmpeg.run('-i',inName,'-ss',String(s),'-to',String(e),'-c','copy',outName);
+    const data=ffmpeg.FS('readFile',outName);
+    const fname=trFile.name.replace('.'+ext,'')+`-trim-${start.replace(/:/g,'')}-${end.replace(/:/g,'')}.`+ext;
+    triggerDownload(data,fname,'video/'+ext);
+    ffmpeg.FS('unlink',inName);ffmpeg.FS('unlink',outName);
+    hideStat('tr-status');
+  } catch(err) {
+    hideStat('tr-status');
+    showErr('tr-error','Trim failed: '+err.message);
+  }
+}
+function trReset(){
+  document.getElementById('tr-editor').style.display='none';
+  document.getElementById('tr-drop').style.display='';
+  document.getElementById('tr-file').value='';
+  trFile=null;
+  hideErr('tr-error');
+}
+
+// ── COMPRESS ──────────────────────────────────────────
+let cmpFile;
+let cmpCrf='28', cmpScale='720';
+makeDrop('cmp-drop','cmp-file',cmpLoad);
+function cmpLoad(file) {
+  if(!file||!file.type.startsWith('video/'))return showErr('cmp-error','Please select a video file.');
+  hideErr('cmp-error');
+  cmpFile=file;
+  document.getElementById('cmp-fname').textContent=file.name;
+  document.getElementById('cmp-fsize').textContent=fmtSz(file.size);
+  document.getElementById('cmp-drop').style.display='none';
+  document.getElementById('cmp-controls').style.display='';
+  document.getElementById('cmp-result').style.display='none';
+}
+function cmpSelect(el) {
+  document.querySelectorAll('.quality-opts .q-opt').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  cmpCrf=el.dataset.crf; cmpScale=el.dataset.scale;
+}
+async function cmpRun() {
+  hideErr('cmp-error');
+  try {
+    await ensureFFmpeg();
+    setStat('cmp-status','cmp-status-text','cmp-prog','Loading video…',5);
+    const ext=getExt(cmpFile);
+    ffmpeg.FS('writeFile','input.'+ext,await fetchFile(cmpFile));
+    setStat('cmp-status','cmp-status-text','cmp-prog','Compressing (this may take a while)…',15);
+    ffmpeg.setProgress(({ratio})=>{if(ratio>0)document.getElementById('cmp-prog').style.width=Math.round(15+ratio*80)+'%';});
+    await ffmpeg.run(
+      '-i','input.'+ext,
+      '-vf',`scale=-2:${cmpScale}`,
+      '-c:v','libx264','-crf',cmpCrf,'-preset','fast',
+      '-c:a','aac','-b:a','128k',
+      'output.mp4'
+    );
+    const data=ffmpeg.FS('readFile','output.mp4');
+    document.getElementById('cmp-orig-sz').textContent=fmtSz(cmpFile.size);
+    document.getElementById('cmp-new-sz').textContent=fmtSz(data.byteLength);
+    const s=Math.round((1-data.byteLength/cmpFile.size)*100);
+    document.getElementById('cmp-save-lbl').textContent=s>0?`✓ ${s}% smaller`:'No size reduction at this quality setting';
+    document.getElementById('cmp-result').style.display='';
+    triggerDownload(data,cmpFile.name.replace(/\.[^.]+$/,'')+`-${cmpScale}p-compressed.mp4`,'video/mp4');
+    ffmpeg.FS('unlink','input.'+ext);ffmpeg.FS('unlink','output.mp4');
+    hideStat('cmp-status');
+  } catch(err) {
+    hideStat('cmp-status');
+    showErr('cmp-error','Compression failed: '+err.message);
+  }
+}
+function cmpReset(){
+  document.getElementById('cmp-controls').style.display='none';
+  document.getElementById('cmp-drop').style.display='';
+  document.getElementById('cmp-file').value='';
+  document.getElementById('cmp-result').style.display='none';
+  cmpFile=null; hideErr('cmp-error');
+}
+
+// ── CONVERT ──────────────────────────────────────────
+let cvtFile, cvtFmt='mp4';
+makeDrop('cvt-drop','cvt-file',cvtLoad);
+function cvtLoad(file) {
+  if(!file||!file.type.startsWith('video/'))return showErr('cvt-error','Please select a video file.');
+  hideErr('cvt-error');
+  cvtFile=file;
+  document.getElementById('cvt-fname').textContent=file.name;
+  document.getElementById('cvt-drop').style.display='none';
+  document.getElementById('cvt-controls').style.display='';
+}
+function cvtSelect(el) {
+  document.querySelectorAll('.fmt-btns .fmt-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  cvtFmt=el.dataset.fmt;
+  document.getElementById('cvt-gif-opts').style.display=cvtFmt==='gif'?'':'none';
+}
+async function cvtRun() {
+  hideErr('cvt-error');
+  try {
+    await ensureFFmpeg();
+    const ext=getExt(cvtFile);
+    setStat('cvt-status','cvt-status-text','cvt-prog','Loading video…',5);
+    ffmpeg.FS('writeFile','input.'+ext,await fetchFile(cvtFile));
+    ffmpeg.setProgress(({ratio})=>{if(ratio>0)document.getElementById('cvt-prog').style.width=Math.round(10+ratio*80)+'%';});
+    const baseName=cvtFile.name.replace(/\.[^.]+$/,'');
+
+    if(cvtFmt==='mp4'){
+      setStat('cvt-status','cvt-status-text','cvt-prog','Converting to MP4…',10);
+      await ffmpeg.run('-i','input.'+ext,'-c:v','libx264','-crf','23','-preset','fast','-c:a','aac','-b:a','128k','output.mp4');
+      const data=ffmpeg.FS('readFile','output.mp4');
+      triggerDownload(data,baseName+'.mp4','video/mp4');
+      ffmpeg.FS('unlink','output.mp4');
+    } else if(cvtFmt==='webm'){
+      setStat('cvt-status','cvt-status-text','cvt-prog','Converting to WebM…',10);
+      await ffmpeg.run('-i','input.'+ext,'-c:v','libvpx','-crf','30','-b:v','0','-c:a','libvorbis','output.webm');
+      const data=ffmpeg.FS('readFile','output.webm');
+      triggerDownload(data,baseName+'.webm','video/webm');
+      ffmpeg.FS('unlink','output.webm');
+    } else if(cvtFmt==='gif'){
+      const dur=Math.min(30,parseInt(document.getElementById('cvt-gif-dur').value)||10);
+      const fps=Math.min(24,parseInt(document.getElementById('cvt-gif-fps').value)||10);
+      const w=parseInt(document.getElementById('cvt-gif-w').value)||480;
+      setStat('cvt-status','cvt-status-text','cvt-prog','Pass 1: generating palette…',10);
+      await ffmpeg.run('-i','input.'+ext,'-vf',`fps=${fps},scale=${w}:-1:flags=lanczos,palettegen`,'-t',String(dur),'palette.png');
+      setStat('cvt-status','cvt-status-text','cvt-prog','Pass 2: creating GIF…',55);
+      await ffmpeg.run('-i','input.'+ext,'-i','palette.png','-vf',`fps=${fps},scale=${w}:-1:flags=lanczos,paletteuse`,'-t',String(dur),'output.gif');
+      const data=ffmpeg.FS('readFile','output.gif');
+      triggerDownload(data,baseName+`.gif`,'image/gif');
+      ffmpeg.FS('unlink','palette.png');ffmpeg.FS('unlink','output.gif');
+    }
+    ffmpeg.FS('unlink','input.'+ext);
+    hideStat('cvt-status');
+  } catch(err) {
+    hideStat('cvt-status');
+    showErr('cvt-error','Conversion failed: '+err.message);
+  }
+}
+function cvtReset(){
+  document.getElementById('cvt-controls').style.display='none';
+  document.getElementById('cvt-drop').style.display='';
+  document.getElementById('cvt-file').value='';
+  cvtFile=null; hideErr('cvt-error');
+}
+
+// ── MUTE ──────────────────────────────────────────────
+let mtFile;
+makeDrop('mt-drop','mt-file',mtLoad);
+function mtLoad(file) {
+  if(!file||!file.type.startsWith('video/'))return showErr('mt-error','Please select a video file.');
+  hideErr('mt-error');
+  mtFile=file;
+  document.getElementById('mt-fname').textContent=file.name;
+  document.getElementById('mt-fsize').textContent=fmtSz(file.size);
+  document.getElementById('mt-drop').style.display='none';
+  document.getElementById('mt-controls').style.display='';
+}
+async function mtRun() {
+  hideErr('mt-error');
+  try {
+    await ensureFFmpeg();
+    setStat('mt-status','mt-status-text','mt-prog','Removing audio…',30);
+    const ext=getExt(mtFile);
+    ffmpeg.FS('writeFile','input.'+ext,await fetchFile(mtFile));
+    await ffmpeg.run('-i','input.'+ext,'-c:v','copy','-an','output.'+ext);
+    const data=ffmpeg.FS('readFile','output.'+ext);
+    triggerDownload(data,mtFile.name.replace('.'+ext,'')+'-muted.'+ext,'video/'+ext);
+    ffmpeg.FS('unlink','input.'+ext);ffmpeg.FS('unlink','output.'+ext);
+    hideStat('mt-status');
+  } catch(err) {
+    hideStat('mt-status');
+    showErr('mt-error','Failed: '+err.message);
+  }
+}
+function mtReset(){
+  document.getElementById('mt-controls').style.display='none';
+  document.getElementById('mt-drop').style.display='';
+  document.getElementById('mt-file').value='';
+  mtFile=null; hideErr('mt-error');
+}
+
+// ── EXTRACT AUDIO ──────────────────────────────────────
+let auFile, auFmt='mp3';
+makeDrop('au-drop','au-file',auLoad);
+function auLoad(file) {
+  if(!file||!file.type.startsWith('video/'))return showErr('au-error','Please select a video file.');
+  hideErr('au-error');
+  auFile=file;
+  document.getElementById('au-fname').textContent=file.name;
+  document.getElementById('au-drop').style.display='none';
+  document.getElementById('au-controls').style.display='';
+}
+function auSelect(el) {
+  document.querySelectorAll('#panel-audio .fmt-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  auFmt=el.dataset.fmt;
+}
+async function auRun() {
+  hideErr('au-error');
+  try {
+    await ensureFFmpeg();
+    setStat('au-status','au-status-text','au-prog','Extracting audio…',20);
+    const ext=getExt(auFile);
+    ffmpeg.FS('writeFile','input.'+ext,await fetchFile(auFile));
+    ffmpeg.setProgress(({ratio})=>{if(ratio>0)document.getElementById('au-prog').style.width=Math.round(20+ratio*70)+'%';});
+    const baseName=auFile.name.replace(/\.[^.]+$/,'');
+    if(auFmt==='mp3'){
+      await ffmpeg.run('-i','input.'+ext,'-vn','-c:a','libmp3lame','-b:a','192k','output.mp3');
+      const data=ffmpeg.FS('readFile','output.mp3');
+      triggerDownload(data,baseName+'.mp3','audio/mp3');
+      ffmpeg.FS('unlink','output.mp3');
+    } else {
+      await ffmpeg.run('-i','input.'+ext,'-vn','-c:a','pcm_s16le','output.wav');
+      const data=ffmpeg.FS('readFile','output.wav');
+      triggerDownload(data,baseName+'.wav','audio/wav');
+      ffmpeg.FS('unlink','output.wav');
+    }
+    ffmpeg.FS('unlink','input.'+ext);
+    hideStat('au-status');
+  } catch(err) {
+    hideStat('au-status');
+    showErr('au-error','Extraction failed: '+err.message);
+  }
+}
+function auReset(){
+  document.getElementById('au-controls').style.display='none';
+  document.getElementById('au-drop').style.display='';
+  document.getElementById('au-file').value='';
+  auFile=null; hideErr('au-error');
+}
+
+// Preload FFmpeg in background after 3s
+setTimeout(()=>ensureFFmpeg().catch(()=>{}), 3000);
+</script>
+</body>
+</html>
