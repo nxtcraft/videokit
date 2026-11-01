@@ -6,6 +6,9 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-R9EW10BJGW"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-R9EW10BJGW");</script>
 <meta charset="UTF-8">
+<link rel="manifest" href="/videokit/manifest.json">
+<meta name="theme-color" content="#14b8a6">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ClipLab — Free Online Video Editor | Trim, Compress, Convert, Slow Motion, Add Audio</title>
 <meta name="description" content="Free online video tools: trim video, compress video, convert format, slow motion effect, add audio to video, mute, extract audio as MP3. All run in your browser — no upload, no signup.">
@@ -992,5 +995,6 @@ function aaReset(){
 // Preload FFmpeg in background after 3s
 setTimeout(()=>ensureFFmpeg().catch(()=>{}), 3000);
 </script>
+<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("/videokit/sw.js");</script>
 </body>
 </html>
